@@ -1,0 +1,1821 @@
+#: kivy 1.10.1
+#: import Factory kivy.factory.Factory
+#: import ScreenManager kivy.uix.screenmanager.ScreenManager
+#: import Screen kivy.uix.screenmanager.Screen
+#: import NoTransition kivy.uix.screenmanager.NoTransition
+#: import HomeScreen screen
+
+## ScreenManager class.  Rotates between different screens in the program.
+ScreenManager:
+    id: screen_manager
+    transition: NoTransition()
+
+    ## The Homescreen
+    HomeScreen:
+        id: HomeScreen
+        name: 'HomeScreen'
+        manager: 'screen_manager'
+
+    ## Dynamic Message page.  Used to display confirmation messages.
+    MessageScreen:
+        id: MessageScreen
+        name: 'MessageScreen'
+        manager: 'screen_manager'
+
+    ## Progress screen.  Used to display progress.
+    ProgressScreen:
+        id: ProgressScreen
+        name: 'ProgressScreen'
+        manager: 'screen_manager'
+
+    ## The Workloads page
+    WorkloadScreen:
+        id: WorkloadScreen
+        name: 'WorkloadScreen'
+        manager: 'screen_manager'
+
+    ## Edit Workload page
+    WorkloadEditScreen:
+        id: WorkloadEditScreen
+        name: 'WorkloadEditScreen'
+        manager: 'screen_manager'
+
+    ## Add Workload page
+    WorkloadAddScreen:
+        id: WorkloadAddScreen
+        name: 'WorkloadAddScreen'
+        manager: 'screen_manager'
+    ##Suite Screen
+    SuiteScreen:
+        id: SuiteScreen
+        name: 'SuiteScreen'
+        manager: 'screen_manager'
+    ##Edit Suite page
+    SuiteEditScreen:
+        id: SuiteEditScreen
+        name: 'SuiteEditScreen'
+        manager: 'screen_manager'
+    ##Add Suite page
+    SuiteAddScreen:
+        id: SuiteAddScreen
+        name: 'SuiteAddScreen'
+        manager: 'screen_manager'
+## The Popup for editing a workload on the Suite Edit page
+<WLPopup>:
+    title: 'Edit Workload: ' + app.wl_to_edit['wl']['name']
+    size_hint: .5, .4
+    FloatLayout:
+        Label:
+            id: popup_subtitle
+            text: "Editing " + app.wl_to_edit['wl']['name']
+            pos_hint: {"x": .05, "y": -.05}
+            text_size: self.size
+            font_size: 24
+            halign: 'left'
+            valign: 'top'
+        Label:
+            id: popup_its_label
+            text: "Iterations:"
+            pos_hint: {"x": -.37, "y": .25}
+            
+        TextInput:
+            id: edit_popup_it
+            size_hint_y: None
+            size_hint_x: .05
+            font_size: 14
+            pos_hint: {"x": .25, "y": .7}
+            height: '27dp'
+            multiline: False
+            ##text: str(app.wl_to_edit['wl']['iterations'])
+            text: str(app.suite_status_list[int(app.wl_to_edit['wl_id'])])
+
+        Button:
+            id: popup_save_wl
+            text: 'Save Workload'
+            pos_hint: {"x": .05, "y":.4}
+            size_hint: .25, .1
+            on_release: 
+                root.save_iterations()
+                root.dismiss()
+        Button:
+            id: popup_remove_wl
+            text: 'Remove Workload'
+            pos_hint: {"x": .38, "y":.4}
+            size_hint: .25, .1
+            on_release: 
+                root.remove_workload()
+                ##root.decrement_wl()
+                root.dismiss()
+
+        Button:
+            id: popup_cancel
+            text: 'Cancel Editing'
+            pos_hint: {"x": .71, "y":.4}
+            size_hint: .25, .1
+            on_release: 
+                root.dismiss()
+## The home screen of the application.  Root widget. This displays a summary of workload/suite metrics.
+<HomeScreen>:
+    canvas.before:
+        Rectangle:
+            size: self.size
+            source: '../misc/background.jpg'
+
+    NavBar:
+        pos: 0, 0
+
+    ## The Home button.  Takes you to Homescreen when clicked.
+    Button:
+        id: home_btn
+        background_normal: '../misc/theme/button_down.png'
+        size_hint: .25, .11
+        pos_hint: {"x": .25, "top":1}
+        on_release:
+            app.root.current = 'HomeScreen'
+        text: "Home"
+
+    Label:
+        id: Summary
+        pos_hint: {"x": -.33, "y":.25}
+        font_size: 36
+        color: 1, 1, 1, 1
+        text: 'Summary Statistics'
+
+    Label:
+        id: Stat1Label
+        pos_hint: {"x": -.285, "y":.18}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: 'Average Workload Runtime (in nano seconds):  '
+
+    Label:
+        id: average_workload_runtime
+        pos_hint: {"x": -.02, "y":.18}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: Stat2Label
+        pos_hint: {"x": -.285, "y":.13}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: 'Longest Workload Runtime (in nano seconds):  '
+
+    Label:
+        id: longest_workload_runtime
+        pos_hint: {"x": -.02, "y":.13}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: Stat3Label
+        pos_hint: {"x": -.285, "y":.08}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: 'Shortest Workload Runtime (in nano seconds):  '
+
+    Label:
+        id: shortest_workload_runtime
+        pos_hint: {"x": -.02, "y":.08}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: Recent
+        pos_hint: {"x": .29, "y":.25}
+        font_size: 36
+        color: 1, 1, 1, 1
+        text: 'Recently Run Workloads'
+
+    Label:
+        id: recent1
+        pos_hint: {"x": .18, "y":.18}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: date1
+        pos_hint: {"x": .40, "y":.18}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: recent2
+        pos_hint: {"x": .18, "y":.14}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: date2
+        pos_hint: {"x": .40, "y":.14}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: recent3
+        pos_hint: {"x": .18, "y":.10}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: date3
+        pos_hint: {"x": .40, "y":.10}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: recent4
+        pos_hint: {"x": .18, "y":.06}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: date4
+        pos_hint: {"x": .40, "y":.06}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: recent5
+        pos_hint: {"x": .18, "y":.02}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: date5
+        pos_hint: {"x": .40, "y":.02}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: recent6
+        pos_hint: {"x": .18, "y":-.02}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: date6
+        pos_hint: {"x": .40, "y":-.02}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: recent7
+        pos_hint: {"x": .18, "y":-.06}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: date7
+        pos_hint: {"x": .40, "y":-.06}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: recent8
+        pos_hint: {"x": .18, "y":-.10}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: date8
+        pos_hint: {"x": .40, "y":-.10}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: recent9
+        pos_hint: {"x": .18, "y":-.14}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: date9
+        pos_hint: {"x": .40, "y":-.14}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: recent10
+        pos_hint: {"x": .18, "y":-.18}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: date10
+        pos_hint: {"x": .40, "y":-.18}
+        font_size: 20
+        color: 1, 1, 1, 1
+        text: ''
+
+## The Workload screen. Has buttons for creating, editing, and removing workloads, as well as running a workload.
+<WorkloadScreen>:
+    canvas.before:
+        Rectangle:
+            size: self.size
+            source: '../misc/background.jpg'
+    on_pre_enter: root.refresh_page()
+    on_enter:
+        root.ids.run_btn.disabled = True
+        root.ids.del_workload.disabled = True
+        workload_iterations = 1
+
+    ## The NavBar (see below)
+    NavBar:
+        pos: 0, 0
+
+    ## The Workloads button.  Takes you to WorkloadScreen when clicked.
+    Button:
+        id: workload_btn
+        background_normal: '../misc/theme/button_down.png'
+        size_hint: .25, .11
+        pos_hint: {"x": .5, "top":1}
+        on_release:
+            app.root.current = 'WorkloadScreen'
+        text: "Workloads"
+
+    ## Label for 'Choose a Workload'
+    Label:
+        id: workload_choose
+        color: 1, 1, 1, 1
+        pos_hint: {"x": -.25, "y":.25}
+        font_size: 36
+        text: "Choose A Workload"
+
+    ## Label for 'Customize Run'
+    Label:
+        id: customize
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .25, "y":.25}
+        font_size: 36
+        text: "Customize Run"
+
+    ## The dropdown menu for workloads.  Fetches the workloads from a list in the
+    ## parent class (in this case, WorkloadScreen.  This is declared in the python file.
+    Spinner:
+        id: spin_workload
+        text: 'Choose...'
+        values: app.workloads
+        pos_hint: {"x": .1, "y":.62}
+        size_hint: .3, .1
+        font_size: 25
+        height: '48dp'
+        on_text: 
+            root.ids.run_btn.disabled = False
+            root.ids.del_workload.disabled = False
+
+    ## Label for 'Iterations'
+    Label:
+        id: iterations
+        color: 1, 1, 1, 1
+        pos: 80, 143
+        font_size: 25
+        text: "Iterations"
+
+    ## Button to create a new workload
+    Button:
+        id: new_workload
+        pos_hint: {"x": .1, "y":.24}
+        size_hint: .25, .1
+        text: "Create New Workload"
+        font_size: 25
+        on_release:
+            app.root.current = 'WorkloadAddScreen'
+
+    ## Button to edit an existing workload
+    Button:
+        id: edit_workload
+        pos_hint: {"x": .1, "y":.12}
+        size_hint: .25, .1
+        text: "Edit Existing Workload"
+        font_size: 25
+        on_release:
+            app.root.current = 'WorkloadEditScreen'
+
+    ## Button to delete a workload
+    Button:
+        background_disabled_normal: '../misc/theme/button_disabled.png'
+        id: del_workload
+        pos_hint: {"x": .1, "y":.48}
+        size_hint: .25, .1
+        text: "Delete Workload"
+        font_size: 25
+        on_release:
+            root.delete_workload()
+            ##Edit message text
+            app.message_text = 'Workload Deleted'
+            ##Say where to return to
+            app.source_page = 'WorkloadScreen'
+            ##Change to message screen
+            app.root.current = 'MessageScreen'
+
+    ## The run button.  Calls a method in the parent class (WorkloadScreen).  This class has
+    ## the method defined in it and is located in the python file.
+    Button:
+        background_disabled_normal: '../misc/theme/button_disabled.png'
+        background_normal: '../misc/theme/button_enabled.png'
+        id: run_btn
+        pos_hint: {"x": .8, "y":.12}
+        size_hint: .15, .1
+        text: "RUN"
+        font_size: 25
+        on_press:
+            ## Edit the app message
+            app.message_text = 'Workload running...'
+
+            ## Say where we should return to
+            app.source_page = 'WorkloadScreen'
+
+            app.workload_to_run = root.ids.spin_workload.text
+
+            app.workload_iterations = root.ids.num_iterations.text
+
+            app.root.current = 'ProgressScreen'
+
+    ## TextInput for iterations.  It auto-populates by grabbing a variable from the backend called
+    ## num_iterations.  This is defined in the parent class, WorkloadScreen and is in the python file.
+    ## The backend is capable of extracting the contents of this textbox at any time.
+    TextInput:
+        id: num_iterations
+        size_hint_y: None
+        size_hint_x: .25
+        pos: 750, 500
+        height: '32dp'
+        multiline: False
+        text: str(root.num_iterations)
+
+
+##Workload Edit Screen. Allows a user to edit a pre-existing workload. 
+<WorkloadEditScreen>:
+    canvas.before:
+        Rectangle:
+            size: self.size
+            source: '../misc/background.jpg'
+    on_pre_enter: root.refresh_page()
+    on_enter: root.ids.save_edit_btn.disabled = True
+
+    ## The NavBar (see below)
+    NavBar:
+        pos: 0, 0
+
+    ## The Workloads button.  Takes you to the Workload Screen when clicked.
+    Button:
+        id: workload_btn
+        background_normal: '../misc/theme/button_down.png'
+        size_hint: .25, .11
+        pos_hint: {"x": .5, "top":1}
+        on_release:
+            app.root.current = 'WorkloadScreen'
+        text: "Workloads"
+
+    ## Label for 'Workload To Edit'
+    Label:
+        color: 1, 1, 1, 1
+        pos_hint: {"x": -.25, "y":.25}
+        font_size: 36
+        text: "Workload To Edit"
+    Button:
+        background_disabled_normal: '../misc/theme/button_disabled.png'
+        background_normal: '../misc/theme/button_enabled.png'
+        id: save_edit_btn
+        pos_hint: {"x": .8, "y":.12}
+        size_hint: .15, .1
+        text: "Save"
+        font_size: 25
+        on_release:
+            ## Edit the workload.
+            root.edit_workload()
+
+            ## Say where we should return to
+            app.source_page = 'WorkloadScreen'
+
+            ## Change to the message screen.
+            app.root.current = 'MessageScreen'
+
+    ## Label to indicate the workload has been edited.
+    Label:
+        id: edit_status
+        pos_hint: {"x": .13, "y":-.325}
+        font_size: 36
+        color: 1, 1, 1, 1
+        text: ''
+
+    ## The dropdown menu for edit workloads.  Fetches the workloads from a list in the
+    ## parent class (in this case, WorkloadScreen).  This is declared in the python file.
+    Spinner:
+        id: spin_edit
+        text: 'Choose...'
+        values: app.workloads
+        pos_hint: {"x": .1, "y":.62}
+        size_hint: .3, .1
+        font_size: 25
+        height: '48dp'
+        on_text: root.update_fields()
+        on_text: root.ids.save_edit_btn.disabled = False
+
+    ## Edit Parameters Label
+    Label:
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .28, "y":.27}
+        font_size: 36
+        text: "Edit Parameters" 
+    ##Parameter labels
+    Label:
+        color: 1, 1, 1, 1
+        pos: 90, 160
+        font_size: 14
+        text: "name"
+    Label:
+        color: 1, 1, 1, 1
+        pos: 90, 130
+        font_size: 14
+        text: "tfhub model"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 90, 100
+        font_size: 14
+        text: "training steps"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 90, 70
+        font_size: 14
+        text: "learning rate"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 90, 40
+        font_size: 14
+        text: "testing percentage"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 80, 10
+        font_size: 14
+        text: "validation percentage"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 90, -20
+        font_size: 14
+        text: "eval step interval"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 350, 160
+        font_size: 14
+        text: "training batch size"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 350, 130
+        font_size: 14
+        text: "test batch size"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 340, 100
+        font_size: 14
+        text: "validation batch size"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 340, 70
+        font_size: 14
+        text: "flip left/right"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 340, 40
+        font_size: 14
+        text: "random crop"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 340, 10
+        font_size: 14
+        text: "random scale"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 340, -20
+        font_size: 14
+        text: "random brightness"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 90, -50
+        font_size: 14
+        text: "comment"
+        ##text: str(root.num_iterations)
+    ## The inputs for the parameters.
+    ## TextInput for name. Blank for now.
+    TextInput:
+        id: name
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 750, 520
+        height: '25dp'
+        multiline: False
+        text: ''
+        on_text:
+            root.reset_status()
+            root.name_touched()
+
+    ## TextInput for comment. Blank for now.
+    TextInput:
+        id: tfhub_model
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 750, 490
+        height: '27dp'
+        multiline: False
+        text: ''
+        on_text: root.reset_status()
+    ## TextInput for comment. Blank for now.
+    TextInput:
+        id: training_steps
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 750, 460
+        height: '25dp'
+        multiline: False
+        text: ''
+        on_text: root.reset_status()
+    ## TextInput for comment. Blank for now.
+    TextInput:
+        id: learning_rate
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 750, 430
+        height: '25dp'
+        multiline: False
+        text: ''
+        on_text: root.reset_status()
+    TextInput:
+        id: testing_percentage
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 750, 400
+        height: '25dp'
+        multiline: False
+        text: ''
+        on_text: root.reset_status()
+    TextInput:
+        id: validation_percentage
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 750, 370
+        height: '25dp'
+        multiline: False
+        text: ''
+        on_text: root.reset_status()
+    TextInput:
+        id: eval_step_interval
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 750, 340
+        height: '25dp'
+        multiline: False
+        text: ''
+        on_text: root.reset_status()
+    TextInput:
+        id: train_batch_size
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 1020, 520
+        height: '25dp'
+        multiline: False
+        text: ''
+        on_text: root.reset_status()
+    TextInput:
+        id: test_batch_size
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 1020, 490
+        height: '25dp'
+        multiline: False
+        text: ''
+        on_text: root.reset_status()
+    TextInput:
+        id: validation_batch_size
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 1020, 460
+        height: '25dp'
+        multiline: False
+        text: ''
+        on_text: root.reset_status()
+    TextInput:
+        id: flip_left_right
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 1020, 430
+        height: '25dp'
+        multiline: False
+        text: ''
+        on_text: root.reset_status()
+    TextInput:
+        id: random_crop
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 1020, 400
+        height: '25dp'
+        multiline: False
+        text: ''
+        on_text: root.reset_status()
+    TextInput:
+        id: random_scale
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 1020, 370
+        height: '25dp'
+        multiline: False
+        text: ''
+        on_text: root.reset_status()
+    TextInput:
+        id: random_brightness
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 1020, 340
+        height: '25dp'
+        multiline: False
+        text: ''
+        on_text: root.reset_status()
+    ## TextInput for comment. Blank for now.
+    TextInput:
+        id: comment
+        size_hint_y: .1
+        size_hint_x: .325
+        font_size: 12
+        pos_hint: {"x": .625, "y": .35}
+        height: '25dp'
+        multiline: True
+        text: '\n\n'
+        on_text: root.reset_status()
+
+    ## Label for command
+    Label:
+        color: 1, 1, 1, 1
+        pos_hint: {"x": -.25, "y":-.3}
+        font_size: 25
+        text: "Enter Custom Command (see doc for usage)"
+
+    ## TextInput for command.
+    TextInput:
+        id: command
+        size_hint_y: .05
+        size_hint_x: .325
+        font_size: 20
+        pos_hint: {"x": .07, "y": .12}
+        height: '25dp'
+        multiline: False
+        height: '25dp'
+        text: ''
+        on_text: root.command_touched()
+## Workload Add Screen. Allows a user to create a workload. 
+<WorkloadAddScreen>:
+    canvas.before:
+        Rectangle:
+            size: self.size
+            source: '../misc/background.jpg'
+    on_pre_enter: root.refresh_page()
+    on_enter: root.ids.save_add_btn.disabled = True
+
+    ## The NavBar (see below)
+    NavBar:
+        pos: 0, 0
+
+    ## The Workloads button.  Takes you to WorkloadScreen when clicked.
+    Button:
+        id: workload_btn
+        background_normal: '../misc/theme/button_down.png'
+        size_hint: .25, .11
+        pos_hint: {"x": .5, "top":1}
+        on_release:
+            app.root.current = 'WorkloadScreen'
+        text: "Workloads"
+
+    ## Label for 'Create Custom Workload'
+    Label:
+        color: 1, 1, 1, 1
+        pos_hint: {"x": -.275, "y":.25}
+        font_size: 36
+        text: "Create Custom Workload"
+    Label:
+        color: 1, 1, 1, 1
+        pos_hint: {"x": -.275, "y":.15}
+        font_size: 36
+        text: "Base Workload?"
+    ## The dropdown menu for add workloads.  Fetches the workloads from a list in the
+    ## parent class (in this case, WorkloadScreen).  This is declared in the python file.
+    Spinner:
+        id: spin_add
+        text: 'Choose...'
+        values: app.workloads
+        pos_hint: {"x": .07, "y":.5}
+        size_hint: .3, .1
+        font_size: 25
+        height: '48dp'
+        on_text: root.update_fields()
+        on_text: root.ids.save_add_btn.disabled = False
+    ## Save Button
+    Button:
+        background_disabled_normal: '../misc/theme/button_disabled.png'
+        background_normal: '../misc/theme/button_enabled.png'
+        id: save_add_btn
+        pos_hint: {"x": .8, "y":.12}
+        size_hint: .15, .1
+        text: "Save"
+        font_size: 25
+        on_release:
+            ## Edit the workload.
+            root.add_workload()
+
+            ## Say where we should return to
+            app.source_page = 'WorkloadScreen'
+
+            ## Change to the message screen.
+            app.root.current = 'MessageScreen'
+
+    ## Label for command
+    Label:
+        color: 1, 1, 1, 1
+        pos_hint: {"x": -.25, "y":-.3}
+        font_size: 25
+        text: "Enter Custom Command (see doc for usage)"
+
+    ## Parameters Label
+    Label:
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .28, "y":.27}
+        font_size: 36
+        text: "Parameters" 
+    ## Workload Parameter labels
+    Label:
+        color: 1, 1, 1, 1
+        pos: 90, 160
+        font_size: 14
+        text: "name"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 90, 130
+        font_size: 14
+        text: "tfhub model"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 90, 100
+        font_size: 14
+        text: "training steps"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 90, 70
+        font_size: 14
+        text: "learning rate"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 90, 40
+        font_size: 14
+        text: "testing percentage"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 80, 10
+        font_size: 14
+        text: "validation percentage"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 90, -20
+        font_size: 14
+        text: "eval step interval"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 350, 160
+        font_size: 14
+        text: "training batch size"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 350, 130
+        font_size: 14
+        text: "test batch size"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 340, 100
+        font_size: 14
+        text: "validation batch size"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 340, 70
+        font_size: 14
+        text: "flip left/right"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 340, 40
+        font_size: 14
+        text: "random crop"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 340, 10
+        font_size: 14
+        text: "random scale"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 340, -20
+        font_size: 14
+        text: "random brightness"
+        ##text: str(root.num_iterations)
+    Label:
+        color: 1, 1, 1, 1
+        pos: 90, -50
+        font_size: 14
+        text: "comment"
+        ##text: str(root.num_iterations)
+    ## Workload parameter fields
+    ## TextInput for name. Blank for now.
+    TextInput:
+        id: name
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 750, 520
+        height: '25dp'
+        multiline: False
+        text: "name"
+        on_text:
+            root.name_touched()
+    ## TextInput for comment. Blank for now.
+    TextInput:
+        id: tfhub_model
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 750, 490
+        height: '27dp'
+        multiline: False
+        text: "tfhub"
+    ## TextInput for comment. Blank for now.
+    TextInput:
+        id: training_steps
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 750, 460
+        height: '25dp'
+        multiline: False
+        text: "training steps"
+    ## TextInput for comment. Blank for now.
+    TextInput:
+        id: learning_rate
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 750, 430
+        height: '25dp'
+        multiline: False
+        text: "learning rate"
+    TextInput:
+        id: testing_percentage
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 750, 400
+        height: '25dp'
+        multiline: False
+        text: "testing percentage"
+    TextInput:
+        id: validation_percentage
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 750, 370
+        height: '25dp'
+        multiline: False
+        text: "validation percentage"
+    TextInput:
+        id: eval_step_interval
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 750, 340
+        height: '25dp'
+        multiline: False
+        text: "eval step interval"
+    TextInput:
+        id: train_batch_size
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 1020, 520
+        height: '25dp'
+        multiline: False
+        text: "training batch size"
+    TextInput:
+        id: test_batch_size
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 1020, 490
+        height: '25dp'
+        multiline: False
+        text: "test batch size"
+    TextInput:
+        id: validation_batch_size
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 1020, 460
+        height: '25dp'
+        multiline: False
+        text: "validation batch size"
+    TextInput:
+        id: flip_left_right
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 1020, 430
+        height: '25dp'
+        multiline: False
+        text: "flip left/right"
+    TextInput:
+        id: random_crop
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 1020, 400
+        height: '25dp'
+        multiline: False
+        text: "random crop"
+    TextInput:
+        id: random_scale
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 1020, 370
+        height: '25dp'
+        multiline: False
+        text: "random scale"
+    TextInput:
+        id: random_brightness
+        size_hint_y: None
+        size_hint_x: .1
+        font_size: 12
+        pos: 1020, 340
+        height: '25dp'
+        multiline: False
+        text: "random brightness"
+    ## TextInput for comment. Blank for now.
+    TextInput:
+        id: comment
+        size_hint_y: .1
+        size_hint_x: .325
+        font_size: 12
+        pos_hint: {"x": .625, "y": .35}
+        height: '25dp'
+        multiline: True
+        text: '\n\n'
+    ## TextInput for command.
+    TextInput:
+        id: command
+        size_hint_y: .05
+        size_hint_x: .325
+        font_size: 20
+        pos_hint: {"x": .07, "y": .12}
+        height: '25dp'
+        multiline: False
+        height: '25dp'
+        text: ''
+        on_text: root.command_touched()
+
+## Dynamic message screen.  Functions as a popup since popup only allows one active widget at a time.
+<MessageScreen>:
+    canvas.before:
+        Rectangle:
+            size: self.size
+            source: '../misc/background.jpg'
+    ## Dynamically loads whatever the stored message is in the application.
+    on_pre_enter: root.update_message(app.message_text)
+    Label:
+        id: message
+        pos_hint: {'x':0, 'y':.2}
+        text: ''
+        font_size: 78
+    Button:
+        pos_hint: {'center_x':.5, 'center_y':.4}
+        size_hint: .3, .1
+        text: 'OK'
+        font_size: 36
+        ## Sends you back to whatever source page was.  Allows dynamic sending.
+        on_release:
+            app.root.current = app.source_page
+
+## Progress screen. This displays the status of a running workload
+## Currently only shows if a workload/suite is running or not. 
+<ProgressScreen>:
+    canvas.before:
+        Rectangle:
+            size: self.size
+            source: '../misc/background.jpg'
+
+    ## Dynamically loads whatever the stored message is in the application.
+    on_pre_enter:
+        root.update_message(app.message_text)
+        root.ids.OK_btn.disabled = True
+
+    on_enter:
+        root.run(app.source_page)
+
+    Label:
+        id: message
+        pos_hint: {'x':0, 'y':.2}
+        text: ''
+        font_size: 78
+
+    Button:
+        id: OK_btn
+        background_disabled_normal: '../misc/theme/button_disabled.png'
+        background_normal: '../misc/theme/button_enabled.png'
+        pos_hint: {'center_x':.5, 'center_y':.4}
+        size_hint: .3, .1
+        text: 'OK'
+        font_size: 36
+        ## Sends you back to whatever source page was.  Allows dynamic sending.
+        on_release:
+            app.root.current = app.source_page
+
+## Suite page. Allows a user to add, remove, and edit suites, and allows a user to run a suite. 
+<SuiteScreen>:
+    canvas.before:
+        Rectangle:
+            size: self.size
+            source: '../misc/background.jpg'
+    on_pre_enter: 
+        root.refresh_page()  
+    on_enter:
+        root.ids.suite_run_btn.disabled = True
+        root.ids.del_suite.disabled = True  
+        root.clear_labels()
+
+    ## The NavBar (see below)
+    NavBar:
+        pos: 0, 0
+
+    ## The Suites button.  Takes you to the SuitesScreen when clicked.
+    Button:
+        id: suite_btn
+        background_normal: '../misc/theme/button_down.png'
+        size_hint: .25, .11
+        pos_hint: {"x": .75, "top":1}
+        on_release:
+            app.root.current = 'SuiteScreen'
+        text: "Suites"
+
+    ## Label for 'Choose a Suite'
+    Label:
+        color: 1, 1, 1, 1
+        pos_hint: {"x": -.275, "y":.25}
+        font_size: 36
+        text: "Choose A Suite"
+    ## Button to create a new suite
+    Button:
+        pos_hint: {"x": .1, "y":.24}
+        size_hint: .25, .1
+        text: "Create New Suite"
+        font_size: 25
+        on_release:
+            app.root.current = 'SuiteAddScreen'
+    ## Button to delete a suite
+    Button:
+        background_disabled_normal: '../misc/theme/button_disabled.png'
+        id: del_suite
+        pos_hint: {"x": .1, "y":.48}
+        size_hint: .25, .1
+        text: "Delete Suite"
+        font_size: 25
+        on_release:
+            root.delete_suite()
+            ##Edit message text
+            app.message_text = 'Suite Deleted'
+            ##Say where to return to
+            app.source_page = 'SuiteScreen'
+            ##Change to message screen
+            app.root.current = 'MessageScreen'
+
+    ## Button to edit an existing suite
+    Button:
+        pos_hint: {"x": .1, "y":.12}
+        size_hint: .25, .1
+        text: "Edit Existing Suite"
+        font_size: 25
+        on_release:
+            app.root.current = 'SuiteEditScreen'
+    ## The run suite button.
+    Button:
+        background_disabled_normal: '../misc/theme/button_disabled.png'
+        background_normal: '../misc/theme/button_enabled.png'
+        id: suite_run_btn
+        pos_hint: {"x": .8, "y":.12}
+        size_hint: .15, .1
+        text: "RUN"
+        font_size: 25
+        ##doesn't exist yet.
+        on_press:
+            ## Edit the app message
+            app.message_text = 'Suite running...'
+
+            ## Say where we should return to
+            app.source_page = 'SuiteScreen'
+
+            app.suite_to_run = root.ids.spin_suite.text
+
+            app.root.current = 'ProgressScreen'
+
+    ## The dropdown menu for suites 
+    Spinner:
+        id: spin_suite
+        text: 'Choose...'
+        values: app.suites
+        pos_hint: {"x": .1, "y":.62}
+        size_hint: .3, .1
+        font_size: 25
+        height: '48dp'
+        on_text:
+            root.update_fields()
+            root.ids.suite_run_btn.disabled = False
+            root.ids.del_suite.disabled = False  
+
+    Label:
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .24, "y":.25}
+        font_size: 36
+        text: "Workloads In The Suite"
+
+    ## Labels to show workloads in the suite
+    Label:
+        id: wl_0
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .25, "y": .2}
+        font_size: 14
+        text: ""
+    Label:
+        id: wl_1
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .25, "y": .15}
+        font_size: 14
+        text: ""
+    Label:
+        id: wl_2
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .25, "y": .1}
+        font_size: 14
+        text: ""
+    Label:
+        id: wl_3
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .25, "y": .05}
+        font_size: 14
+        text: ""
+    Label:
+        id: wl_4
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .25, "y": 0}
+        font_size: 14
+        text: " "
+    Label:
+        id: wl_5
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .25, "y": -.05}
+        font_size: 14
+        text: ""
+    Label:
+        id: wl_6
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .25, "y": -.1}
+        font_size: 14
+        text: ""
+    Label:
+        id: wl_7
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .25, "y": -.15}
+        font_size: 14
+        text: ""
+    Label:
+        id: wl_8
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .25, "y": -.2}
+        font_size: 14
+        text: ""
+    Label:
+        id: wl_9
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .25, "y": -.25}
+        font_size: 14
+        text: ""
+
+## Suite Edit page. Allows a user to edit existing suites. A user can add or remove workloads from the suites, and edit the iterations of the workloads in the suite. 
+## However, you cannot edit the parameters of a workload that was just added. 
+<SuiteEditScreen>:
+    canvas.before:
+        Rectangle:
+            size: self.size
+            source: '../misc/background.jpg'
+    on_pre_enter: 
+        root.refresh_page()
+        root.clear_labels()
+        root.refresh_wls()
+    on_enter: root.ids.suite_run_btn.disabled = True
+    ##Leaving this here for later since I assume we will just modify this
+
+    ## The NavBar (see below)
+    NavBar:
+        pos: 0, 0
+
+    ## The Suites button.  Takes you to the SuitesScreen when clicked.
+    Button:
+        id: suite_btn
+        background_normal: '../misc/theme/button_down.png'
+        size_hint: .25, .11
+        pos_hint: {"x": .75, "top":1}
+        on_release:
+            app.root.current = 'SuiteScreen'
+        text: "Suites"
+
+    Spinner:
+        id: spin_suite_edit
+        text: 'Choose...'
+        values: app.suites
+        pos_hint: {"x": .1, "y":.62}
+        size_hint: .3, .1
+        font_size: 25
+        height: '48dp'
+        on_text: 
+            root.ids.suite_run_btn.disabled = False
+            root.ids.spin_wls_to_add.disabled = False
+            root.update_fields()
+            root.get_suite_wl_status()
+            root.display_wl_labels()
+
+    ## Label for 'Suite To Edit'
+    Label:
+        color: 1, 1, 1, 1
+        pos_hint: {"x": -.275, "y":.25}
+        font_size: 36
+        text: "Suite To Edit"
+
+    ## Label to indicate the suite has been edited.
+    Label:
+        id: edit_suite_status
+        pos_hint: {"x": 0, "y":-.325}
+        font_size: 36
+        color: 1, 1, 1, 1
+        text: ''
+
+    Label:
+        id: edit_wl_0
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .1, "y": .2}
+        font_size: 14
+        text: " "
+        markup:True
+        on_ref_press: 
+            root.set_wl_clicked("0")
+    Label:
+        id: edit_wl_1
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .1, "y": .15}
+        font_size: 14
+        text: " "
+        markup:True
+        on_ref_press: 
+            root.set_wl_clicked("1")
+
+    Label:
+        id: edit_wl_2
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .1, "y": .1}
+        font_size: 14
+        text: " "
+        markup:True
+        on_ref_press: 
+            root.set_wl_clicked("2")
+
+    Label:
+        id: edit_wl_3
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .1, "y": .05}
+        font_size: 14
+        text: " "
+        markup:True
+        on_ref_press: 
+            root.set_wl_clicked("3")
+
+    Label:
+        id: edit_wl_4
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .1, "y": 0}
+        font_size: 14
+        text: " "
+        markup:True
+        on_ref_press: 
+            root.set_wl_clicked("4")
+    Label:
+        id: edit_wl_5
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .1, "y": -.05}
+        font_size: 14
+        text: " "
+        markup:True
+        on_ref_press: 
+            root.set_wl_clicked("5")
+    Label:
+        id: edit_wl_6
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .1, "y": -.1}
+        font_size: 14
+        text: " "
+        markup:True
+        on_ref_press: 
+            root.set_wl_clicked("6")
+    Label:
+        id: edit_wl_7
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .1, "y": -.15}
+        font_size: 14
+        text: " "
+        markup:True
+        on_ref_press: 
+            root.set_wl_clicked("7")
+    Label:
+        id: edit_wl_8
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .1, "y": -.2}
+        font_size: 14
+        text: " "
+        markup:True
+        on_ref_press: 
+            root.set_wl_clicked("8")
+    Label:
+        id: edit_wl_9
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .1, "y": -.25}
+        font_size: 14
+        text: " "
+        markup:True
+        on_ref_press: 
+            root.set_wl_clicked("9")
+    Button:
+        background_disabled_normal: '../misc/theme/button_disabled.png'
+        background_normal: '../misc/theme/button_enabled.png'
+        id: suite_run_btn
+        pos_hint: {"x": .8, "y":.12}
+        size_hint: .15, .1
+        text: "Save"
+        font_size: 25
+        ##doesn't exist yet.
+        ##on_press: root.add_suite()
+        ##on_press: Factory.WLPopup().open()
+        on_release:
+            ## Add the suite
+            root.update_suite()
+
+            ## Say where we should return to
+            app.source_page = 'SuiteScreen'
+
+            ## Change to the message screen.
+            app.root.current = 'MessageScreen'
+    ##Label for Edit Suite Name
+    Label:
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .1, "y": .25}
+        font_size: 18
+        text: "Suite Name:"
+    ##TextInput for Suite Name
+    TextInput:
+        id: edit_suite_name
+        size_hint_y: None
+        size_hint_x: .12
+        font_size: 14
+        pos_hint: {"x": .65, "y": .73}
+        height: '27dp'
+        multiline: False
+        text: ""
+    ##Label for 'Add a Workload'
+    Label:
+        color: 1, 1, 1, 1
+        pos_hint: {"x": -.265, "y":.09}
+        font_size: 32
+        text: "Add a Workload"
+    ## Dropdown of workloads
+    Spinner:
+        id: spin_wls_to_add
+        background_disabled_normal: '../misc/theme/button_disabled.png'
+        disabled: True
+        text: 'Choose...'
+        values: app.workloads
+        pos_hint: {"x": .1, "y":.48}
+        size_hint: .3, .08
+        font_size: 25
+        height: '45dp'
+        on_text: root.ids.edit_suite_add_btn.disabled = False
+    Label:
+        color: 1, 1, 1, 1
+        pos_hint: {"x": -.3, "y":-.1}
+        font_size: 32
+        text: "Iterations: "
+    TextInput:
+        id: edit_suite_wl_it
+        size_hint_y: None
+        size_hint_x: .05
+        font_size: 14
+        pos_hint: {"x": .27, "y": .38}
+        height: '27dp'
+        multiline: False
+        text: "1"
+    Button:
+        id: edit_suite_add_btn
+        background_disabled_normal: '../misc/theme/button_disabled.png'
+        background_normal: '../misc/theme/button_enabled.png'
+        pos_hint: {"x": .2, "y": .3}
+        size_hint: .05, .05
+        text: "Add"
+        font_size: 14
+        on_press: root.add_workload()
+    ##Label to tell user max workloads are added
+    Label:
+        id: suite_max_edit
+        color: 1, 1, 1, 1
+        pos_hint: {"x": 0, "y": -.3}
+        font_size: 36
+        text: ""
+    
+
+## Suite Add page. To add a suite, a user needs to name the suite, and then a user can add workloads using the drop down. 
+<SuiteAddScreen>:
+    ##background
+    canvas.before:
+        Rectangle:
+            size: self.size
+            source: '../misc/background.jpg'
+    on_pre_enter:
+        root.refresh_page()
+        root.clear_labels()
+        root.ids.suite_name_add.text = ''
+        root.ids.suite_add_btn.disabled = True
+    on_enter:
+        root.ids.suite_run_btn.disabled = True
+
+    ## The NavBar (see below)
+    NavBar:
+        pos: 0, 0
+
+    ## The Suites button.  Takes you to the SuitesScreen when clicked.
+    Button:
+        id: suite_btn
+        background_normal: '../misc/theme/button_down.png'
+        size_hint: .25, .11
+        pos_hint: {"x": .75, "top":1}
+        on_release:
+            app.root.current = 'SuiteScreen'
+        text: "Suites"
+
+    ## Label for 'Workload To Add'
+    Label:
+        color: 1, 1, 1, 1
+        pos_hint: {"x": -.275, "y":.25}
+        font_size: 36
+        text: "Workload To Add"
+    ## The dropdown menu for workloads to add to suite.
+    Spinner:
+        id: spin_suite_add
+        background_disabled_normal: '../misc/theme/button_disabled.png'
+        text: 'Choose...'
+        values: app.workloads
+        pos_hint: {"x": .1, "y":.62}
+        size_hint: .3, .1
+        font_size: 25
+        height: '48dp'
+        on_text: root.ids.suite_add_btn.disabled = False
+    ## Label for 'Suite Name'
+    Label:
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .25, "y": .25}
+        font_size: 36
+        text: "Suite Name: "
+    Label:
+        id: suite_it_add
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .005, "y": .2}
+        font_size: 36
+        text: "Iterations: "
+    TextInput:
+        id: suite_it_add
+        size_hint_y: None
+        size_hint_x: .05
+        font_size: 14
+        pos_hint: {"x": .57, "y": .68}
+        height: '27dp'
+        multiline: False
+        text: "1"
+    ##Text Input for suite name
+    TextInput:
+        id: suite_name_add
+        size_hint_y: None
+        size_hint_x: .12
+        font_size: 14
+        pos_hint: {"x": .83, "y": .73}
+        height: '27dp'
+        multiline: False
+        ##text: "" ##needs to be default later
+        on_text: root.name_added()
+    Button:
+        id: suite_add_btn
+        background_disabled_normal: '../misc/theme/button_disabled.png'
+        background_normal: '../misc/theme/button_enabled.png'
+        pos_hint: {"x": .5, "y": .6}
+        size_hint: .05, .05
+        text: "Add"
+        font_size: 14
+        on_press: root.add_workload()
+    ##Displays the workloads added. 
+    Label:
+        id: add_wl_0
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .3, "y": .2}
+        font_size: 14
+        text: " "
+    Label:
+        id: add_wl_1
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .3, "y": .15}
+        font_size: 14
+        text: " "
+    Label:
+        id: add_wl_2
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .3, "y": .1}
+        font_size: 14
+        text: " "
+    Label:
+        id: add_wl_3
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .3, "y": .05}
+        font_size: 14
+        text: " "
+    Label:
+        id: add_wl_4
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .3, "y": 0}
+        font_size: 14
+        text: " "
+    Label:
+        id: add_wl_5
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .3, "y": -.05}
+        font_size: 14
+        text: " "
+    Label:
+        id: add_wl_6
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .3, "y": -.1}
+        font_size: 14
+        text: " "
+    Label:
+        id: add_wl_7
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .3, "y": -.15}
+        font_size: 14
+        text: " "
+    Label:
+        id: add_wl_8
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .3, "y": -.2}
+        font_size: 14
+        text: " "
+    Label:
+        id: add_wl_9
+        color: 1, 1, 1, 1
+        pos_hint: {"x": .3, "y": -.25}
+        font_size: 14
+        text: " "
+    ##Label to tell user max workloads are added
+    Label:
+        id: suite_max_add
+        color: 1, 1, 1, 1
+        pos_hint: {"x": 0, "y": -.3}
+        font_size: 36
+        text: " "
+    ## The save button.
+    Button:
+        background_disabled_normal: '../misc/theme/button_disabled.png'
+        background_normal: '../misc/theme/button_enabled.png'
+        id: suite_run_btn
+        pos_hint: {"x": .8, "y":.12}
+        size_hint: .15, .1
+        text: "Save"
+        font_size: 25
+        ##doesn't exist yet.
+        ##on_press: root.add_suite()
+        on_release:
+            ## Add the suite
+            root.add_suite()
+
+            ## Say where we should return to
+            app.source_page = 'SuiteScreen'
+
+            ## Change to the message screen.
+            app.root.current = 'MessageScreen'
+## Navigation bar.  Included in each screen. This is the header bar of the application. 
+<NavBar>:
+    ## The AIXPRT logo.  Takes you to the Homescreen if clicked.
+    Button:
+        id: logo_btn
+        size_hint: .25, .1
+        pos_hint: {"left": 1, "top":1}
+        on_release:
+            app.root.current = 'HomeScreen'
+        Image:
+            source: '../misc/logo.png'
+            y: self.parent.y + self.parent.height - 190
+            x: self.parent.x
+            size: 300, 300
+            ##size_hint: .5, .5
+            allow_stretch: True
+
+    ## The Home button.  Takes you to Homescreen when clicked.
+    Button:
+        id: home_btn
+        size_hint: .25, .11
+        pos_hint: {"x": .25, "top":1}
+        on_release:
+            app.root.current = 'HomeScreen'
+        text: "Home"
+
+    ## The Workloads button.  Takes you to WorkloadScreen when clicked.
+    Button:
+        id: workload_btn
+        size_hint: .25, .11
+        pos_hint: {"x": .5, "top":1}
+        on_release:
+            app.root.current = 'WorkloadScreen'
+        text: "Workloads"
+
+    ## The Suites button.  Takes you to the SuitesScreen when clicked.
+    Button:
+        id: suite_btn
+        size_hint: .25, .11
+        pos_hint: {"x": .75, "top":1}
+        ## Use the on_release for easy testing while Suites isn't implemented
+        ##on_release:
+        ##    app.source_page = "BLABLA"
+        ##    app.root.current = 'MessageScreen'
+        on_release:
+            app.root.current = 'SuiteScreen'
+        text: "Suites"
